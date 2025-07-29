@@ -70,7 +70,9 @@ export default function Home() {
           redirectTo: `${window.location.origin}/auth/callback`
         }
       })
-      if (error) console.error('Error signing in:', error.message)
+      if (error) {
+        console.error('Error signing in:', error.message)
+      }
     } catch (error) {
       console.error('Sign in error:', error)
     }
