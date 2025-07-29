@@ -20,6 +20,8 @@ export default function Home() {
         setSupabase(client)
       } catch (error) {
         console.error('Error initializing Supabase:', error)
+        // Set loading to false even if Supabase fails to initialize
+        setLoading(false)
       }
     }
     
@@ -27,7 +29,13 @@ export default function Home() {
   }, [])
 
   useEffect(() => {
-    if (!supabase) return
+    if (!supabase) {
+      // If Supabase is not initialized, set loading to false after a timeout
+      const timer = setTimeout(() => {
+        setLoading(false)
+      }, 2000)
+      return () => clearTimeout(timer)
+    }
 
     // Get initial session
     const getSession = async () => {
@@ -82,7 +90,10 @@ export default function Home() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading your app...</p>
+        </div>
       </div>
     )
   }
@@ -96,7 +107,16 @@ export default function Home() {
           </h1>
           
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 mb-8">
-            {user ? (
+            {!supabase ? (
+              <div className="space-y-4">
+                <p className="text-gray-600 dark:text-gray-300 mb-6">
+                  ⚠️ Supabase connection not available. Please check your environment variables.
+                </p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Make sure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are set in your Vercel environment variables.
+                </p>
+              </div>
+            ) : user ? (
               <div className="space-y-4">
                 <div className="flex items-center justify-center space-x-3">
                   <UserIcon className="w-8 h-8 text-blue-600" />
