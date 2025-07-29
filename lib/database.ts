@@ -54,18 +54,12 @@ export async function getPosts() {
     const supabase = createClientComponentClient()
     const { data, error } = await supabase
       .from('posts')
-      .select(`
-        *,
-        profiles:user_id (
-          id,
-          full_name,
-          avatar_url
-        )
-      `)
+      .select('*')
       .order('created_at', { ascending: false })
     
     return { data, error }
   } catch (error) {
+    console.error('Database getPosts catch error:', error)
     return { data: null, error }
   }
 }
@@ -81,6 +75,7 @@ export async function createPost(post: Omit<Post, 'id' | 'created_at'>) {
     
     return { data, error }
   } catch (error) {
+    console.error('Database createPost catch error:', error)
     return { data: null, error }
   }
 }

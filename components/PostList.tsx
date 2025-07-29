@@ -11,22 +11,30 @@ export default function PostList() {
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState<User | null>(null)
   const [newPost, setNewPost] = useState({ title: '', content: '' })
-  const supabase = createClientComponentClient()
+  const [supabase, setSupabase] = useState<any>(null)
 
   useEffect(() => {
-    // Get current user
-    const getUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      setUser(session?.user ?? null)
+    const initSupabase = async () => {
+      try {
+        const client = createClientComponentClient()
+        setSupabase(client)
+        
+        // Get current user
+        const { data: { session } } = await client.auth.getSession()
+        setUser(session?.user ?? null)
+
+        // Load posts after supabase is initialized
+        loadPosts(client)
+      } catch (error) {
+        console.error('Error initializing Supabase in PostList:', error)
+        setLoading(false)
+      }
     }
 
-    getUser()
-
-    // Load posts
-    loadPosts()
+    initSupabase()
   }, [])
 
-  const loadPosts = async () => {
+  const loadPosts = async (client?: any) => {
     setLoading(true)
     const { data, error } = await getPosts()
     if (data) {
@@ -40,9 +48,11 @@ export default function PostList() {
 
   const handleCreatePost = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!user || !newPost.title || !newPost.content) return
+    if (!user || !newPost.title || !newPost.content || !supabase) {
+      return
+    }
 
-    const { error } = await createPost({
+    const { data, error } = await createPost({
       title: newPost.title,
       content: newPost.content,
       user_id: user.id
@@ -50,6 +60,7 @@ export default function PostList() {
 
     if (error) {
       console.error('Error creating post:', error)
+      alert(`Error creating post: ${error}`)
     } else {
       setNewPost({ title: '', content: '' })
       loadPosts()
@@ -57,7 +68,7 @@ export default function PostList() {
   }
 
   const handleDeletePost = async (postId: string) => {
-    if (!user) return
+    if (!user || !supabase) return
 
     const { error } = await deletePost(postId, user.id)
     if (error) {
