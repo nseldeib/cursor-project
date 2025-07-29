@@ -1,25 +1,40 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+// Check environment variables first
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+console.log('Supabase environment check:', {
+  url: supabaseUrl ? 'set' : 'missing',
+  key: supabaseAnonKey ? 'set' : 'missing',
+  urlValue: supabaseUrl,
+  keyValue: supabaseAnonKey ? `${supabaseAnonKey.substring(0, 20)}...` : 'undefined'
+})
 
-// Server-side client with service role key
-export const supabaseAdmin = createClient(
-  supabaseUrl,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
-
-// Client-side Supabase client
+// Simple client-side Supabase client
 export const createClientComponentClient = () => {
+  if (!supabaseUrl || !supabaseAnonKey || supabaseUrl.trim() === '' || supabaseAnonKey.trim() === '') {
+    console.error('Environment variables are empty:', {
+      url: supabaseUrl,
+      key: supabaseAnonKey,
+      urlEmpty: supabaseUrl === '',
+      keyEmpty: supabaseAnonKey === '',
+      urlTrimmedEmpty: supabaseUrl?.trim() === '',
+      keyTrimmedEmpty: supabaseAnonKey?.trim() === ''
+    })
+    throw new Error('Missing Supabase environment variables')
+  }
+  
+  console.log('Creating Supabase client with URL:', supabaseUrl)
   return createClient(supabaseUrl, supabaseAnonKey)
 }
 
-// Safe client creation for server-side rendering
-export const createSafeClient = () => {
-  if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error('Supabase URL and key are required')
-  }
-  return createClient(supabaseUrl, supabaseAnonKey)
-} 
+// Server-side client (only create if environment variables are available)
+export const supabase = supabaseUrl && supabaseAnonKey ? 
+  createClient(supabaseUrl, supabaseAnonKey) : 
+  null
+
+// Server-side client with service role key
+export const supabaseAdmin = supabaseUrl && process.env.SUPABASE_SERVICE_ROLE_KEY ? 
+  createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY) : 
+  null 
