@@ -5,6 +5,7 @@
 import { useState, useEffect } from 'react'
 import { User } from '@supabase/supabase-js'
 import { LogIn, LogOut, User as UserIcon, Mail, Github } from 'lucide-react'
+import PostList from '@/components/PostList'
 
 export default function Home() {
   const [user, setUser] = useState<User | null>(null)
@@ -166,8 +167,8 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
       <div className="container mx-auto px-4 py-16">
-        <div className="max-w-2xl mx-auto text-center">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-8">
+        <div className="max-w-4xl mx-auto">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-8 text-center">
             Welcome to Next.js + Supabase
           </h1>
 
@@ -196,7 +197,7 @@ export default function Home() {
               </div>
             ) : (
               <div className="space-y-4">
-                <p className="text-gray-600 dark:text-gray-300 mb-6">
+                <p className="text-gray-600 dark:text-gray-300 mb-6 text-center">
                   Get started by signing in with your preferred method
                 </p>
 
@@ -275,34 +276,40 @@ export default function Home() {
             )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                Next.js 14
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                Built with the latest Next.js features including App Router
-              </p>
-            </div>
+          {/* Show PostList only when user is signed in */}
+          {user && <PostList />}
 
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                Supabase Auth
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                Secure authentication with OAuth providers
-              </p>
-            </div>
+          {/* Show features grid only when user is not signed in */}
+          {!user && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                  Next.js 14
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400">
+                  Built with the latest Next.js features including App Router
+                </p>
+              </div>
 
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                TypeScript
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                Full TypeScript support for better development experience
-              </p>
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                  Supabase Auth
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400">
+                  Secure authentication with OAuth providers
+                </p>
+              </div>
+
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                  TypeScript
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400">
+                  Full TypeScript support for better development experience
+                </p>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>
