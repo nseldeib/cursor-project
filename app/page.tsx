@@ -71,7 +71,11 @@ export default function Home() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'github',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`
+          redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          }
         }
       })
       if (error) {
@@ -117,14 +121,17 @@ export default function Home() {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          data: {
+            name: email.split('@')[0] // Use email prefix as name
+          }
         }
       })
       
       if (error) {
         setAuthMessage(`Sign up error: ${error.message}`)
       } else {
-        setAuthMessage('Check your email for the confirmation link!')
+        setAuthMessage('Account created successfully! You can now sign in.')
         setEmail('')
         setPassword('')
         setShowEmailForm(false)
@@ -219,6 +226,11 @@ export default function Home() {
                   </div>
                 ) : (
                   <form onSubmit={handleEmailSignIn} className="space-y-4">
+                    <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 mb-4">
+                      <p className="text-sm text-blue-700 dark:text-blue-300">
+                        💡 <strong>Demo Account:</strong> Use any email/password to create an account instantly!
+                      </p>
+                    </div>
                     <input
                       type="email"
                       placeholder="Email address"
