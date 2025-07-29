@@ -4,12 +4,16 @@
 
 import { useState, useEffect } from 'react'
 import { User } from '@supabase/supabase-js'
-import { LogIn, LogOut, User as UserIcon } from 'lucide-react'
+import { LogIn, LogOut, User as UserIcon, Mail, Github } from 'lucide-react'
 
 export default function Home() {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [supabase, setSupabase] = useState<any>(null)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [showEmailForm, setShowEmailForm] = useState(false)
+  const [authMessage, setAuthMessage] = useState('')
 
   useEffect(() => {
     // Dynamically import Supabase client to avoid SSR issues
@@ -61,7 +65,7 @@ export default function Home() {
     return () => subscription?.unsubscribe()
   }, [supabase])
 
-  const handleSignIn = async () => {
+  const handleGitHubSignIn = async () => {
     if (!supabase) return
     try {
       const { error } = await supabase.auth.signInWithOAuth({
@@ -72,9 +76,62 @@ export default function Home() {
       })
       if (error) {
         console.error('Error signing in:', error.message)
+        setAuthMessage(`GitHub sign-in error: ${error.message}`)
       }
     } catch (error) {
       console.error('Sign in error:', error)
+      setAuthMessage('GitHub sign-in failed. Try email authentication instead.')
+    }
+  }
+
+  const handleEmailSignIn = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!supabase || !email || !password) return
+
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      })
+      
+      if (error) {
+        setAuthMessage(`Sign in error: ${error.message}`)
+      } else {
+        setAuthMessage('')
+        setEmail('')
+        setPassword('')
+        setShowEmailForm(false)
+      }
+    } catch (error) {
+      console.error('Email sign in error:', error)
+      setAuthMessage('Email sign-in failed')
+    }
+  }
+
+  const handleEmailSignUp = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!supabase || !email || !password) return
+
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`
+        }
+      })
+      
+      if (error) {
+        setAuthMessage(`Sign up error: ${error.message}`)
+      } else {
+        setAuthMessage('Check your email for the confirmation link!')
+        setEmail('')
+        setPassword('')
+        setShowEmailForm(false)
+      }
+    } catch (error) {
+      console.error('Email sign up error:', error)
+      setAuthMessage('Email sign-up failed')
     }
   }
 
@@ -133,16 +190,75 @@ export default function Home() {
             ) : (
               <div className="space-y-4">
                 <p className="text-gray-600 dark:text-gray-300 mb-6">
-                  Get started by signing in with your GitHub account
+                  Get started by signing in with your preferred method
                 </p>
 
-                <button
-                  onClick={handleSignIn}
-                  className="flex items-center justify-center space-x-2 w-full bg-gray-900 hover:bg-gray-800 text-white font-medium py-3 px-6 rounded-lg transition-colors"
-                >
-                  <LogIn className="w-5 h-5" />
-                  <span>Sign In with GitHub</span>
-                </button>
+                {authMessage && (
+                  <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3 mb-4">
+                    <p className="text-sm text-yellow-700 dark:text-yellow-300">{authMessage}</p>
+                  </div>
+                )}
+
+                {!showEmailForm ? (
+                  <div className="space-y-3">
+                    <button
+                      onClick={handleGitHubSignIn}
+                      className="flex items-center justify-center space-x-2 w-full bg-gray-900 hover:bg-gray-800 text-white font-medium py-3 px-6 rounded-lg transition-colors"
+                    >
+                      <Github className="w-5 h-5" />
+                      <span>Sign In with GitHub</span>
+                    </button>
+
+                    <button
+                      onClick={() => setShowEmailForm(true)}
+                      className="flex items-center justify-center space-x-2 w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition-colors"
+                    >
+                      <Mail className="w-5 h-5" />
+                      <span>Sign In with Email</span>
+                    </button>
+                  </div>
+                ) : (
+                  <form onSubmit={handleEmailSignIn} className="space-y-4">
+                    <input
+                      type="email"
+                      placeholder="Email address"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                      required
+                    />
+                    <input
+                      type="password"
+                      placeholder="Password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                      required
+                    />
+                    <div className="flex space-x-3">
+                      <button
+                        type="submit"
+                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+                      >
+                        Sign In
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleEmailSignUp}
+                        className="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+                      >
+                        Sign Up
+                      </button>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowEmailForm(false)}
+                      className="w-full text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+                    >
+                      ← Back to other options
+                    </button>
+                  </form>
+                )}
               </div>
             )}
           </div>
