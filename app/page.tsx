@@ -5,7 +5,7 @@
 import { useState, useEffect } from 'react'
 import { User } from '@supabase/supabase-js'
 import { LogIn, LogOut, User as UserIcon, Mail, Github } from 'lucide-react'
-import PostList from '@/components/PostList'
+import NoteApp from '@/components/NoteApp'
 
 export default function Home() {
   const [user, setUser] = useState<User | null>(null)
@@ -276,8 +276,8 @@ export default function Home() {
             )}
           </div>
 
-          {/* Show PostList only when user is signed in */}
-          {user && <PostList />}
+                      {/* Show NoteApp only when user is signed in */}
+            {user && <NoteApp />}
 
           {/* Show features grid only when user is not signed in */}
           {!user && (
